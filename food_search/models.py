@@ -1,28 +1,44 @@
 from django.db import models
 
-class ownedIngredients(models.Model):
-    name = models.CharField(max_length=64)
-    carbohydrates = models.IntegerField()
-    proteins = models.IntegerField()
-    calories = models.IntegerField()
-
-class ignoredIngredients(models.Model):
-    name = models.CharField(max_length=64)
-    carbohydrates = models.IntegerField()
-    proteins = models.IntegerField()
-    calories = models.IntegerField()
-
-class missingIngredients(models.Model):
-    name = models.CharField(max_length=64)
-    carbohydrates = models.IntegerField()
-    proteins = models.IntegerField()
-    calories = models.IntegerField()
-
 class recipes(models.Model):
     name = models.CharField(max_length=64)
     image = models.CharField(max_length=255)
-    ownedIngredients = models.CharField(max_length=255)
-    missingIngredients = models.CharField(max_length=255)
-    carbohydrates = models.IntegerField()
-    proteins = models.IntegerField()
-    calories = models.IntegerField()
+    carbs = models.CharField(max_length=10)
+    proteins = models.CharField(max_length=10)
+    calories = models.CharField(max_length=10)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+class ownedIngredients(models.Model):
+    name = models.CharField(max_length=64)
+    recip =  models.ForeignKey(recipes, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+class ignoredIngredients(models.Model):
+    name = models.CharField(max_length=64)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+class missingIngredients(models.Model):
+    name = models.CharField(max_length=64)
+    recip =  models.ForeignKey(recipes, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+

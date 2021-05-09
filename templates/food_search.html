@@ -2,7 +2,18 @@
 
 {% block content %}
   <h2>API</h2>
-    <div><strong>Error:<br>{{ errorResponse }}</strong></div>
+    {% if errorResponse%}
+        <div><strong>Error:<br>{{ errorResponse }}</strong></div>
+    {% endif %}
     <p>Response:</p>
-    <p><strong>{{ response }}</strong></p>
+    <p>{{ response }}</p>
+{#    {% for singleRecip in response %}#}
+{#    <p>#}
+{#        <table>#}
+{#        <tr>#}
+{#            <td><h3>{{ singleRecip.name }}</h3></td>#}
+{#        </tr>#}
+{#        </table>#}
+{#    </p>#}
+{#    {% endfor %}#}
 {% endblock %}
