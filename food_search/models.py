@@ -1,7 +1,8 @@
 from django.db import models
 
 class recipes(models.Model):
-    name = models.CharField(max_length=64)
+    recip_api_id = models.IntegerField()
+    name = models.CharField(max_length=255)
     image = models.CharField(max_length=255)
     carbs = models.CharField(max_length=10)
     proteins = models.CharField(max_length=10)
@@ -13,6 +14,7 @@ class recipes(models.Model):
     class Meta:
         ordering = ['name']
 
+
 class ownedIngredients(models.Model):
     name = models.CharField(max_length=64)
     recip =  models.ForeignKey(recipes, on_delete=models.CASCADE)
@@ -21,16 +23,8 @@ class ownedIngredients(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['name']
+        ordering = ['recip']
 
-class ignoredIngredients(models.Model):
-    name = models.CharField(max_length=64)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['name']
 
 class missingIngredients(models.Model):
     name = models.CharField(max_length=64)
@@ -40,5 +34,5 @@ class missingIngredients(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['name']
+        ordering = ['recip']
 

@@ -1,19 +1,71 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
-{% block content %}
-  <h2>API</h2>
-    {% if errorResponse%}
-        <div><strong>Error:<br>{{ errorResponse }}</strong></div>
+{% block chooseIngrades %}
+    <h1>Choose what you got:</h1>
+    <form action="{% url 'myapp:home' %}" method="POST">
+{#        <form action="{% url 'myapp:find_food' %}" method="POST">#}
+
+        {% csrf_token %}
+        <p>
+            I have:
+            <select name="owned_ingredients">
+                <option value='["Eggs","Ham","Bread"]' >Eggs, Ham, Bread</option>
+                <option value='["Pasta","Tomatos","Garlic","Chicken"]'>Pasta, Tomatos, Garlic, Chicken</option>
+                <option value='["Sugar","Rice","Flour","Salt", "Apples"]'>Sugar, Rice, Flour, Salt, Apples</option>
+            </select>
+        </p>
+
+        <p>I don't want to:
+            <select name="ignored_ingredients">
+                <option value='["Salt"]'>Salt</option>
+                <option value='["Corianderken"]'>Coriander</option>
+                <option value='["Plum"]'>Plum</option>
+            </select>
+        </p>
+
+        <p><input type="submit" value="SAVE YOUR CHOOSE"/></p>
+    </form>
+{% endblock %}
+
+{% block recipsList %}
+    {% if error_response %}
+        <div><strong>Error:<br>{{ error_response }}</strong></div>
+    {% elif recips_data %}
+        <h2>Eco food search</h2>
+        <p>Recips for you:</p>
+        <div style="text-align: center">
+            {% for single_recip in recips_data %}
+                <p>
+                    <table style="border:1px solid black; margin: 0 auto; width: 100%">
+                        <tr>
+                            <th colspan="3" style="padding: 1rem 2rem;"><strong>{{ single_recip.name }}</strong> -
+                                Calories: {{ single_recip.calories }}, Carbohydres: {{ single_recip.carbs }},
+                                Proteins: {{ single_recip.proteins }}</th>
+                        </tr>
+                        <tr>
+                            <td style="max-width: 300px;"><img src="{{ single_recip.image }}" style="max-width: 290px">
+                            </td>
+                            <td style="max-width: 300px;">
+                <p><strong>Owned ingredients:</strong></p>
+                {% for single_ingredient in owned_ingredients %}
+                    {% if single_ingredient.recip.name ==  single_recip.name %}
+                        <p>{{ single_ingredient.name }} ({{single_ingredient.name|translate_text}})</p>
+                    {% endif %}
+                {% endfor %}
+                </td>
+                <td style="max-width: 300px">
+                    <p><strong>Missing ingredients:</strong></p>
+                    {% for single_ingredient in missing_ingredients %}
+                        {% if single_ingredient.recip.name ==  single_recip.name %}
+                            <p>{{ single_ingredient.name }} ({{single_ingredient.name|translate_text}})</p>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                </tr>
+                </table>
+                </p>
+            {% endfor %}
+        </div>
     {% endif %}
-    <p>Response:</p>
-    <p>{{ response }}</p>
-{#    {% for singleRecip in response %}#}
-{#    <p>#}
-{#        <table>#}
-{#        <tr>#}
-{#            <td><h3>{{ singleRecip.name }}</h3></td>#}
-{#        </tr>#}
-{#        </table>#}
-{#    </p>#}
-{#    {% endfor %}#}
 {% endblock %}
