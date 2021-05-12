@@ -5,7 +5,6 @@ from .models import *
 import requests
 
 
-
 def home(request):
     errors, request.session['owned_ingredients'], request.session['ignoredIngredients'] = [], [], []
 
@@ -16,6 +15,7 @@ def home(request):
 
     else:
         return render(request, 'food_search.html', {
+            'title': 'SavedAndHealthy',
             'error_response': [],
             'recips_data': [],
             'owned_ingredients': [],
@@ -26,18 +26,13 @@ def home(request):
 def find_food(request):
     paramsAPI = {"ingredients": request.session['owned_ingredients'],
                  "ignorePantry": request.session['ignored_ingredients'],
-                 "number": "1",
+                 "number": "5",
                  "apiKey": settings.SPOONACULAR_API_KEY}
-    errors = []
-    recips_ids = []
 
-   #Lista wszystkich recip_api_id
-   # recipes.objects.values_list('recip_api_id', flat=True).distinct()
-
-   #get recip_api_id from ownedIngredients
-   #ownedIngredients.recip.get_queryset().values_list('recip_api_id', flat=True)
+    errors, recips_ids = [], []
 
     try: #try to connect with api
+        #https://spoonacular.com/food-api/docs#Search-Recipes-by-Ingredients
         response = requests.get(url='https://api.spoonacular.com/recipes/findByIngredients', params=paramsAPI).json()
     except Exception as e:
         errors.append(e)
@@ -47,6 +42,7 @@ def find_food(request):
 
             # if we don't have recip in DB, add one:
             if not recipes.objects.filter(recip_api_id=recip["id"]).exists():
+                #https://spoonacular.com/food-api/docs#Get-Recipe-Nutrition-Widget-by-ID
                 nutritionURL = 'https://api.spoonacular.com/recipes/{id}/nutritionWidget.json'.format(id=recip["id"])
                 nutritionData = requests.get(url=nutritionURL, params={"apiKey": settings.SPOONACULAR_API_KEY}).json()
                 newRecip = recipes(recip_api_id=recip["id"], name=recip["title"], image=recip["image"], carbs=nutritionData["carbs"],
@@ -54,21 +50,23 @@ def find_food(request):
 
                 newRecip.save()
 
-
-                # Adding used ingredients
+                # Adding used ingredients to DB
                 for ingredient in recip['usedIngredients']:
                     newIngredient = ownedIngredients(name=ingredient['name'], recip=newRecip)
                     newIngredient.save()
 
-                # Adding missing ingredients
+                # Adding missing ingredients to DB
                 for ingredient in recip['missedIngredients']:
                     newIngredient = missingIngredients(name=ingredient['name'], recip=newRecip)
                     newIngredient.save()
 
     finally: #always run this:
+        title = str('_'.join(ownedIngredients.objects.filter(recip__recip_api_id__in=recips_ids).values_list('name', flat='true'))).replace(" ", "")
+
         return render(request, 'food_search.html', {
+            'title': title,
             'error_response': errors,
-            'recips_data': recipes.objects.filter(recip_api_id__in=recips_ids).order_by('proteins'),
+            'recips_data': recipes.objects.filter(recip_api_id__in=recips_ids).order_by('-proteins'),
             'owned_ingredients': ownedIngredients.objects.all(),
             'missing_ingredients': missingIngredients.objects.all()
         })
